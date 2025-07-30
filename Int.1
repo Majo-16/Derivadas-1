@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Calculadora de Derivadas por Límites</title>
 <style>
@@ -24,7 +24,7 @@
     box-shadow: 0 10px 25px rgba(0,0,0,0.3);
     padding: 30px;
     max-width: 400px;
-    width: 100%;
+    width: 90%;
   }
 
   .calculator h2 {
@@ -40,6 +40,7 @@
     border-radius: 8px;
     border: 1px solid #ccc;
     font-size: 16px;
+    box-sizing: border-box;
   }
 
   .calculator button {
@@ -64,7 +65,8 @@
     padding: 15px;
     border-radius: 8px;
     font-size: 14px;
-    line-height: 1.5;
+    line-height: 1.6;
+    word-wrap: break-word;
   }
 </style>
 </head>
@@ -79,11 +81,11 @@
 
 <script>
 function resolverDerivada() {
-  const funcion = document.getElementById('functionInput').value;
+  const funcion = document.getElementById('functionInput').value.trim();
   const stepsArea = document.getElementById('stepsArea');
 
   if (!funcion) {
-    stepsArea.innerHTML = "Por favor, ingresa una función para derivar.";
+    stepsArea.innerHTML = "⚠️ Por favor, ingresa una función para derivar.";
     return;
   }
 
@@ -92,12 +94,12 @@ function resolverDerivada() {
     <b>Función a derivar:</b> f(x) = ${funcion}<br><br>
     <b>Paso 1:</b> Aplicamos la definición de derivada:<br>
     f'(x) = lim<sub>h→0</sub> [f(x + h) - f(x)] / h<br><br>
-    <b>Paso 2:</b> Calculamos f(x + h):<br>
-    (aquí sustituimos x por x+h en la función)<br><br>
+    <b>Paso 2:</b> Sustituimos x por (x + h) en la función:<br>
+    f(x + h) = ...<br><br>
     <b>Paso 3:</b> Calculamos f(x + h) - f(x).<br><br>
-    <b>Paso 4:</b> Dividimos todo entre h.<br><br>
+    <b>Paso 4:</b> Dividimos la expresión resultante entre h.<br><br>
     <b>Paso 5:</b> Tomamos el límite cuando h→0.<br><br>
-    <b>Resultado aproximado:</b> f'(x) ≈ <i>(ejemplo, depende de implementación real)</i>
+    <b>Resultado aproximado:</b> f'(x) ≈ <i>(cálculo real depende de implementación)</i>
   `;
 }
 </script>
