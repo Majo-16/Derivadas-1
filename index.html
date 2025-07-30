@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calculadora de Derivadas</title>
+<title>Calculadora de Derivadas paso a paso</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
 
@@ -14,7 +14,6 @@
     margin: 0;
     padding: 0;
   }
-
   header {
     background: rgba(255,255,255,0.9);
     color: #2c3e50;
@@ -22,12 +21,10 @@
     padding: 25px 10px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   }
-
   header h1 {
     margin: 0;
     font-size: 28px;
   }
-
   .container {
     max-width: 800px;
     margin: 30px auto;
@@ -36,13 +33,11 @@
     border-radius: 10px;
     box-shadow: 0 0 20px rgba(0,0,0,0.2);
   }
-
   .input-section {
     display: flex;
     gap: 10px;
     margin-bottom: 25px;
   }
-
   input[type="text"] {
     flex: 1;
     padding: 12px;
@@ -50,7 +45,6 @@
     border: 1px solid #ccc;
     border-radius: 6px;
   }
-
   button {
     background: #2c3e50;
     color: #fff;
@@ -61,11 +55,9 @@
     cursor: pointer;
     transition: background 0.3s;
   }
-
   button:hover {
     background: #1e2f3a;
   }
-
   .result {
     background: #ecf0f1;
     padding: 15px;
@@ -73,8 +65,8 @@
     border-radius: 6px;
     font-size: 15px;
     line-height: 1.7;
+    word-wrap: break-word;
   }
-
   .step-title {
     font-weight: bold;
     color: #2c3e50;
@@ -84,18 +76,17 @@
 <body>
 
 <header>
-  <h1>Calculadora de Derivadas</h1>
+  <h1>Calculadora de Derivadas paso a paso</h1>
 </header>
 
 <div class="container">
   <div class="input-section">
-    <input type="text" id="funcion" placeholder="Ingresa una función, ej: x^3 - 2x^2 + 5x - 7">
+    <input type="text" id="funcion" placeholder="Ej: -2x^2">
     <button onclick="calcularDerivada()">Derivar</button>
   </div>
   <div id="resultado" class="result"></div>
 </div>
 
-<!-- Incluye math.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
 <script>
 function calcularDerivada() {
@@ -108,30 +99,47 @@ function calcularDerivada() {
   }
 
   try {
-    // Derivada simbólica usando math.js
-    const derivada = math.derivative(expr, 'x').toString();
-
     // f(x)
     const fx = expr;
 
-    // f(x+h): reemplazamos todas las x por (x+h)
-    const fxh = expr.replace(/x/g, '(x+h)');
+    // f(x+h): reemplazar x por (x + h)
+    const fxh = expr.replace(/x/g, '(x + h)');
 
     // f(x+h) - f(x)
-    const diff = `(${fxh}) - (${fx})`;
+    const restaExpr = `(${fxh}) - (${fx})`;
 
-    // [f(x+h)-f(x)]/h
-    const quotient = `(${fxh} - (${fx}))/h`;
+    // [f(x+h)-f(x)] / h
+    const divisionExpr = `(${restaExpr}) / h`;
+
+    // Simplificar paso a paso usando math.js
+    const paso1 = math.simplify(fxh).toString();
+    const paso2 = math.simplify(restaExpr).toString();
+    const paso3 = math.simplify(divisionExpr).toString();
+
+    // Derivada final
+    const derivada = math.derivative(expr, 'x').toString();
 
     resultadoDiv.innerHTML = `
-      <div class="step-title">Función original:</div> f(x) = ${fx} <br><br>
-      <div class="step-title">Paso 1:</div> Sustituimos x por (x + h): <br>
-      f(x + h) = ${fxh} <br><br>
-      <div class="step-title">Paso 2:</div> Calculamos f(x + h) - f(x): <br>
-      ${diff} <br><br>
-      <div class="step-title">Paso 3:</div> Dividimos entre h: <br>
-      ${quotient} <br><br>
-      <div class="step-title">Paso 4:</div> Tomamos el límite cuando h→0: <br>
+      <div class="step-title">Función original:</div>
+      f(x) = ${fx} <br><br>
+
+      <div class="step-title">Paso 1:</div>
+      Sustituimos x por (x + h): <br>
+      f(x + h) = ${fxh} <br>
+      Simplificado: ${paso1} <br><br>
+
+      <div class="step-title">Paso 2:</div>
+      Calculamos f(x + h) - f(x): <br>
+      (${fxh}) - (${fx}) <br>
+      Simplificado: ${paso2} <br><br>
+
+      <div class="step-title">Paso 3:</div>
+      Dividimos entre h: <br>
+      (${paso2}) / h <br>
+      Simplificado: ${paso3} <br><br>
+
+      <div class="step-title">Paso 4:</div>
+      Tomamos el límite cuando h→0 (equivalente a la derivada): <br>
       <b>f'(x) = ${derivada}</b>
     `;
   } catch (error) {
