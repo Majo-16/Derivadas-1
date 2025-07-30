@@ -6,63 +6,78 @@
 <title>Calculadora de Derivadas</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
   body {
     font-family: 'Roboto', sans-serif;
-    background: #f7f9fa;
+    background: linear-gradient(135deg, #4ca1af, #2c3e50);
     color: #333;
     margin: 0;
     padding: 0;
   }
+
   header {
-    background: #007ACC;
-    color: #fff;
+    background: rgba(255,255,255,0.9);
+    color: #2c3e50;
     text-align: center;
-    padding: 20px 10px;
+    padding: 25px 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
   }
+
   header h1 {
     margin: 0;
-    font-size: 24px;
+    font-size: 28px;
   }
+
   .container {
-    max-width: 700px;
+    max-width: 800px;
     margin: 30px auto;
-    padding: 20px;
+    padding: 25px;
     background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.2);
   }
+
   .input-section {
     display: flex;
     gap: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
   }
+
   input[type="text"] {
     flex: 1;
-    padding: 10px;
+    padding: 12px;
     font-size: 16px;
     border: 1px solid #ccc;
-    border-radius: 4px;
+    border-radius: 6px;
   }
+
   button {
-    background: #007ACC;
+    background: #2c3e50;
     color: #fff;
     border: none;
-    padding: 10px 16px;
+    padding: 12px 18px;
     font-size: 16px;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
     transition: background 0.3s;
   }
+
   button:hover {
-    background: #005ea1;
+    background: #1e2f3a;
   }
+
   .result {
-    margin-top: 15px;
-    background: #e9f3fb;
-    padding: 12px;
-    border-left: 4px solid #007ACC;
-    border-radius: 4px;
-    font-size: 16px;
+    background: #ecf0f1;
+    padding: 15px;
+    border-left: 5px solid #2c3e50;
+    border-radius: 6px;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  .step-title {
+    font-weight: bold;
+    color: #2c3e50;
   }
 </style>
 </head>
@@ -93,12 +108,31 @@ function calcularDerivada() {
   }
 
   try {
-    // Calcula la derivada usando math.js
+    // Derivada simbólica usando math.js
     const derivada = math.derivative(expr, 'x').toString();
 
+    // f(x)
+    const fx = expr;
+
+    // f(x+h): reemplazamos todas las x por (x+h)
+    const fxh = expr.replace(/x/g, '(x+h)');
+
+    // f(x+h) - f(x)
+    const diff = `(${fxh}) - (${fx})`;
+
+    // [f(x+h)-f(x)]/h
+    const quotient = `(${fxh} - (${fx}))/h`;
+
     resultadoDiv.innerHTML = `
-      <b>Función original:</b> f(x) = ${expr} <br>
-      <b>Derivada:</b> f'(x) = ${derivada}
+      <div class="step-title">Función original:</div> f(x) = ${fx} <br><br>
+      <div class="step-title">Paso 1:</div> Sustituimos x por (x + h): <br>
+      f(x + h) = ${fxh} <br><br>
+      <div class="step-title">Paso 2:</div> Calculamos f(x + h) - f(x): <br>
+      ${diff} <br><br>
+      <div class="step-title">Paso 3:</div> Dividimos entre h: <br>
+      ${quotient} <br><br>
+      <div class="step-title">Paso 4:</div> Tomamos el límite cuando h→0: <br>
+      <b>f'(x) = ${derivada}</b>
     `;
   } catch (error) {
     resultadoDiv.innerHTML = "⚠️ Error al calcular la derivada. Revisa la expresión ingresada.";
