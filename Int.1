@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Derivadas por Límites</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        /* Variables CSS para facilitar la personalización de colores */
+        :root {
+            --primary-color: #4CAF50; /* Verde vibrante */
+            --secondary-color: #2196F3; /* Azul para acentos */
+            --background-light: #e8f5e9; /* Fondo claro y suave */
+            --text-dark: #333;
+            --text-light: #f8f8f8;
+            --card-background: #ffffff;
+            --border-color: #ddd;
+            --shadow-light: rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-light);
+            color: var(--text-dark);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Alinea al inicio del eje vertical */
+            min-height: 100vh;
+            padding-top: 50px; /* Espacio superior */
+            box-sizing: border-box;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            margin: 20px;
+            background-color: var(--card-background);
+            border-radius: 12px;
+            box-shadow: 0 8px 16px var(--shadow-light);
+            overflow: hidden; /* Para que los bordes redondeados se apliquen bien */
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--text-light);
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 5px solid var(--primary-color);
+        }
+
+        header h1 {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .calculator-card {
+            padding: 30px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 25px;
+        }
+
+        .input-section label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        .input-section input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 12px;
+            font-size: 1.1em;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-family: 'Roboto Mono', monospace;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-section input[type="text"]:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+        }
+
+        .input-section button {
+            background-color: var(--primary-color);
+            color: var(--text-light);
+            border: none;
+            padding: 14px 25px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            font-weight: 700;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .input-section button:hover {
+            background-color: #43a047; /* Un verde un poco más oscuro */
+            transform: translateY(-2px);
+        }
+
+        .output-section h2, .output-section h3 {
+            color: var(--primary-color);
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-family: 'Roboto Mono', monospace;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+        }
+
+        .steps-box, .result-box {
+            background-color: #f0f4f7;
+            border: 1px dashed var(--secondary-color);
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 100px;
+            overflow-y: auto; /* Para scroll si el contenido es largo */
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.95em;
+            color: var(--text-dark);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .steps-box p, .result-box p {
+            margin-bottom: 10px;
+        }
+
+        .steps-box h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            border-bottom: none;
+            padding-bottom: 0;
+            color: var(--text-dark); /* Color más oscuro para subtítulos internos */
+        }
+        
+        .error {
+            color: #d32f2f; /* Rojo oscuro para mensajes de error */
+            font-weight: bold;
+        }
+
+        footer {
+            background-color: var(--text-dark);
+            color: var(--text-light);
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9em;
+            border-top: 5px solid var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Derivadas por Límites</h1>
+            <p>Calculadora interactiva con explicación paso a paso</p>
+        </header>
+
+        <main class="calculator-card">
+            <div class="input-section">
+                <label for="functionInput">Ingresa la función a derivar (ej: x^2, 2*x+3, 5):</label>
+                <input type="text" id="functionInput" placeholder="Ej: x^2 + 3*x">
+                <button id="solveButton">Calcular Derivada</button>
+            </div>
+
+            <div class="output-section">
+                <h2>Proceso de Solución:</h2>
+                <div id="stepsOutput" class="steps-box">
+                    <p>Aquí se mostrarán los pasos de la derivación...</p>
+                </div>
+                <h3>Resultado Final:</h3>
+                <div id="resultOutput" class="result-box">
+                    <p>La derivada es:</p>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 Calculadora de Derivadas. Todos los derechos reservados.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const functionInput = document.getElementById('functionInput');
+            const solveButton = document.getElementById('solveButton');
+            const stepsOutput = document.getElementById('stepsOutput');
+            const resultOutput = document.getElementById('resultOutput');
+
+            solveButton.addEventListener('click', () => {
+                const funcStr = functionInput.value.trim().toLowerCase();
+                if (!funcStr) {
+                    stepsOutput.innerHTML = '<p class="error">Por favor, ingresa una función.</p>';
+                    resultOutput.innerHTML = '<p class="error">La derivada es:</p>';
+                    return;
+                }
+
+                // SIMULACIÓN BÁSICA de la resolución para funciones simples
+                // IMPORTANTE: Esto NO es un motor de álgebra simbólica completo.
+                // Solo maneja casos muy específicos (x^2, ax+b, constantes) para fines demostrativos.
+                // Para funciones más complejas (sen(x), e^x, x^3, etc.), se necesitaría un parser y un motor de cálculo simbólico avanzado.
+
+                let steps = [];
+                let result = '';
+
+                steps.push("<h3>Aplicando la definición de la derivada por límites:</h3>");
+                steps.push("$$f'(x) = \\lim_{h \\to 0} \\frac{f(x+h) - f(x)}{h}$$");
+
+                // Caso: x^2 (y variaciones simples)
+                if (funcStr.includes('x^2')) {
+                    steps.push(`<p>Sea $f(x) = ${funcStr}$.</p>`);
+                    steps.push("<p>Primero, calculamos $f(x+h)$:</p>");
+                    let fx_plus_h_expr = `(x+h)^2`;
+                    let expanded_fx_plus_h = `x^2 + 2xh + h^2`;
+                    
+                    if (funcStr.includes('+')) {
+                        const parts = funcStr.split('+').map(p => p.trim());
+                        if (parts[1] && parts[1].includes('x')) { // Ej: x^2 + 3x
+                            const linear_term = parts[1];
+                            const coeff_linear = parseInt(linear_term.replace('*x', '').replace('x', '')) || 1;
+                            fx_plus_h_expr += ` + ${coeff_linear}(x+h)`;
+                            expanded_fx_plus_h += ` + ${coeff_linear}x + ${coeff_linear}h`;
+                        } else if (parts[1] && !isNaN(parts[1])) { // Ej: x^2 + 5
+                            const constant_term = parts[1];
+                            fx_plus_h_expr += ` + ${constant_term}`;
+                            expanded_fx_plus_h += ` + ${constant_term}`;
+                        }
+                    }
+                    steps.push(`$$f(x+h) = ${fx_plus_h_expr} = ${expanded_fx_plus_h}$$`);
+
+                    steps.push("<p>Luego, sustituimos en la fórmula del límite:</p>");
+                    let numerator_step1 = expanded_fx_plus_h + ` - (${funcStr})`;
+                    steps.push(`$$\\lim_{h \\to 0} \\frac{(${expanded_fx_plus_h}) - (${funcStr})}{h}$$`);
+                    
+                    // Simplificación del numerador para x^2
+                    let simplified_numerator = `2xh + h^2`;
+                    if (funcStr.includes('+')) {
+                        const parts = funcStr.split('+').map(p => p.trim());
+                        if (parts[1] && parts[1].includes('x')) {
+                            const linear_term = parts[1];
+                            const coeff_linear = parseInt(linear_term.replace('*x', '').replace('x', '')) || 1;
+                            simplified_numerator += ` + ${coeff_linear}h`;
+                        }
+                    }
+                    steps.push(`$$\\lim_{h \\to 0} \\frac{${simplified_numerator}}{h}$$`);
+                    steps.push("Sacamos factor común $h$ del numerador:");
+                    
+                    let common_h_expr = `h(2x + h)`;
+                    if (funcStr.includes('+')) {
+                        const parts = funcStr.split('+').map(p => p.trim());
+                        if (parts[1] && parts[1].includes('x')) {
+                            const coeff_linear = parseInt(parts[1].replace('*x', '').replace('x', '')) || 1;
+                            common_h_expr = `h(2x + h + ${coeff_linear})`;
+                        }
+                    }
+                    steps.push(`$$\\lim_{h \\to 0} \\frac{${common_h_expr}}{h}$$`);
+                    steps.push("Cancelamos $h$:");
+                    
+                    let final_expr_before_limit = `2x + h`;
+                    if (funcStr.includes('+')) {
+                        const parts = funcStr.split('+').map(p => p.trim());
+                        if (parts[1] && parts[1].includes('x')) {
+                            const coeff_linear = parseInt(parts[1].replace('*x', '').replace('x', '')) || 1;
+                            final_expr_before_limit = `2x + h + ${coeff_linear}`;
+                        }
+                    }
+                    steps.push(`$$\\lim_{h \\to 0} (${final_expr_before_limit})$$`);
+                    steps.push("Aplicamos el límite cuando $h \\to 0$:");
+                    
+                    let final_deriv = `2x`;
+                    if (funcStr.includes('+')) {
+                        const parts = funcStr.split('+').map(p => p.trim());
+                        if (parts[1] && parts[1].includes('x')) {
+                            const coeff_linear = parseInt(parts[1].replace('*x', '').replace('x', '')) || 1;
+                            final_deriv = `2x + ${coeff_linear}`;
+                        }
+                    }
+                    steps.push(`$$${final_deriv}$$`);
+                    result = `$${final_deriv}$`;
+
+                } else if (funcStr.includes('x')) { // Caso: ax+b (y ax)
+                    const match = funcStr.match(/(\d*)?\*?x(\+\d+)?/);
+                    let coeff = 1;
+                    let constant = 0;
+                    if (match) {
+                        if (match[1]) coeff = parseInt(match[1]);
+                        if (match[2]) constant = parseInt(match[2].replace('+', ''));
+                    }
+
+                    steps.push(`<p>Sea $f(x) = ${funcStr}$.</p>`);
+                    steps.push("<p>Primero, calculamos $f(x+h)$:</p>");
+                    steps.push(`$$f(x+h) = ${coeff}(x+h) ${constant ? '+' + constant : ''} = ${coeff}x + ${coeff}h ${constant ? '+' + constant : ''}$$`);
+                    steps.push("<p>Luego, sustituimos en la fórmula del límite:</p>");
+                    steps.push(`$$\\lim_{h \\to 0} \\frac{(${coeff}x + ${coeff}h ${constant ? '+' + constant : ''}) - (${coeff}x ${constant ? '+' + constant : ''})}{h}$$`);
+                    steps.push(`$$\\lim_{h \\to 0} \\frac{${coeff}h}{h}$$`);
+                    steps.push("Cancelamos $h$:");
+                    steps.push(`$$\\lim_{h \\to 0} (${coeff})$$`);
+                    steps.push("Aplicamos el límite cuando $h \\to 0$ (la constante no cambia):");
+                    steps.push(`$$${coeff}$$`);
+                    result = `$${coeff}$`;
+
+                } else if (!isNaN(parseFloat(funcStr))) { // Si es una constante
+                    steps.push(`<p>Sea $f(x) = ${funcStr}$.</p>`);
+                    steps.push("<p>Calculamos $f(x+h)$ y $f(x)$:</p>");
+                    steps.push(`$$f(x+h) = ${funcStr}$$`);
+                    steps.push(`$$f(x) = ${funcStr}$$`);
+                    steps.push("<p>Sustituimos en la fórmula del límite:</p>");
+                    steps.push(`$$\\lim_{h \\to 0} \\frac{${funcStr} - ${funcStr}}{h}$$`);
+                    steps.push(`$$\\lim_{h \\to 0} \\frac{0}{h}$$`);
+                    steps.push("El límite de una constante es la constante misma:");
+                    steps.push(`$$0$$`);
+                    result = `$0$`;
+                } else {
+                    steps.push('<p class="error">Lo siento, esta calculadora simplificada solo puede resolver funciones polinómicas básicas (ej. x, x^2, 2*x+3, constantes). Para funciones más complejas (trigonométricas, exponenciales), se requiere un motor de cálculo simbólico avanzado.</p>');
+                    result = 'No disponible';
+                }
+
+                stepsOutput.innerHTML = steps.join('');
+                resultOutput.innerHTML = `<p>La derivada es: ${result}</p>`;
+
+                // Renderizar ecuaciones LaTeX después de que el contenido se ha actualizado
+                MathJax.typesetPromise();
+            });
+        });
+    </script>
+</body>
+</html>
