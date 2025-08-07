@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Calculadora de Derivadas</title>
+  <title>Calculadora de Derivadas Profesional</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/nerdamer/1.1.9/nerdamer.core.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/nerdamer/1.1.9/Calculus.min.js"></script>
@@ -52,7 +52,7 @@
 <body>
   <div class="container">
     <h2>Calculadora de Derivadas Profesional</h2>
-    <input type="text" id="funcion" placeholder="Escribe la función, por ejemplo: 2x^2">
+    <input type="text" id="funcion" placeholder="Escribe la función, por ejemplo: 2x^2 + 3x">
     <button onclick="resolverDerivada()">Resolver</button>
     
     <h3>Resultado:</h3>
@@ -66,24 +66,31 @@
   </div>
 
   <script>
+    function insertarMultiplicaciones(str) {
+      return str.replace(/(\d)([a-zA-Z])/g, '$1*$2')  // 2x -> 2*x
+                .replace(/([a-zA-Z])(\d)/g, '$1*$2')  // x2 -> x*2
+                .replace(/([a-zA-Z])([a-zA-Z])/g, '$1*$2'); // xsin -> x*sin
+    }
+
     function resolverDerivada() {
-      const entrada = document.getElementById('funcion').value.replace(/\^/g, '**');
-      const entradaNormalizada = entrada.replace(/\*\*/g, '^'); // para nerdamer
+      const entradaUsuario = document.getElementById('funcion').value;
+      const entrada = insertarMultiplicaciones(entradaUsuario.replace(/\^/g, '**')); // para math.js
+      const entradaParaNerdamer = insertarMultiplicaciones(entradaUsuario.replace(/\*\*/g, '^')); // para nerdamer
 
       try {
         // Calcular derivada
-        const derivada = nerdamer(`diff(${entradaNormalizada}, x)`).toString();
+        const derivada = nerdamer(`diff(${entradaParaNerdamer}, x)`).toString();
         document.getElementById('resultado').innerText = derivada;
 
-        // Mostrar paso a paso (forma simple)
-        let pasos = `1. Función original: f(x) = ${entradaNormalizada}\n`;
-        pasos += `2. Aplicamos regla de derivación\n`;
+        // Paso a paso (simplificado)
+        let pasos = `1. Función original: f(x) = ${entradaUsuario}\n`;
+        pasos += `2. Aplicamos reglas de derivación\n`;
         pasos += `3. Resultado: f'(x) = ${derivada}`;
         document.getElementById('pasos').innerText = pasos;
 
-        // Graficar función original y derivada
+        // Evaluar con math.js
         const f = math.evaluate(`f(x) = ${entrada}`);
-        const f_deriv = math.evaluate(`f_deriv(x) = ${math.simplify(derivada).toString()}`);
+        const f_deriv = math.evaluate(`f_deriv(x) = ${insertarMultiplicaciones(derivada.replace(/\^/g, '**'))}`);
 
         const x_vals = [];
         const y_vals_f = [];
@@ -96,7 +103,7 @@
         }
 
         const ctx = document.getElementById('grafico').getContext('2d');
-        if (window.myChart) window.myChart.destroy(); // Evita superposición de gráficas
+        if (window.myChart) window.myChart.destroy();
 
         window.myChart = new Chart(ctx, {
           type: 'line',
@@ -125,7 +132,7 @@
               },
               title: {
                 display: true,
-                text: 'Función Original y su Derivada'
+                text: 'Función y su Derivada'
               }
             },
             scales: {
