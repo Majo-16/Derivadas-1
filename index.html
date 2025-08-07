@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Calculadora de Derivadas</title>
+  <title>Derivadas paso a paso - Forma larga</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.1/math.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -75,45 +75,51 @@
       }
 
       try {
-        const fx = math.parse(entrada);
-        const fx_str = fx.toString();
+        // Paso 1: función original
+        const fxNode = math.parse(entrada);
+        const fx_str = fxNode.toString();
+        const fx = math.compile(entrada);
 
-        const fxh = fx.transform(node =>
+        // Paso 2: f(x + h)
+        const fxhNode = fxNode.transform(node =>
           node.isSymbolNode && node.name === "x"
             ? math.parse("(x + h)")
             : node
         );
-        const fxh_str = fxh.toString();
+        const fxh_str = fxhNode.toString();
 
-        const diferencia = math.simplify(`(${fxh_str}) - (${fx_str})`);
-        const diferencia_str = diferencia.toString();
+        // Paso 3: f(x+h) - f(x)
+        const diferenciaNode = math.simplify(`(${fxh_str}) - (${fx_str})`);
+        const diferencia_str = diferenciaNode.toString();
 
-        const cociente = math.simplify(`(${diferencia_str}) / h`);
-        const cociente_str = cociente.toString();
+        // Paso 4: [f(x+h) - f(x)] / h
+        const cocienteNode = math.simplify(`(${diferencia_str}) / h`);
+        const cociente_str = cocienteNode.toString();
 
+        // Paso 5: derivada con math.derivative
         const derivada = math.derivative(entrada, 'x');
+        const derivada_str = derivada.toString();
+        const df = derivada.compile();
 
+        // Mostrar pasos
         resultado.innerHTML += `<div class="paso">1️⃣ Fórmula general:<br>f'(x) = lim₍ₕ→0₎ [f(x+h) - f(x)] / h</div>`;
         resultado.innerHTML += `<div class="paso">2️⃣ f(x) = <strong>${fx_str}</strong></div>`;
         resultado.innerHTML += `<div class="paso">3️⃣ f(x+h) = <strong>${fxh_str}</strong></div>`;
         resultado.innerHTML += `<div class="paso">4️⃣ Diferencia: f(x+h) - f(x) = <strong>${diferencia_str}</strong></div>`;
         resultado.innerHTML += `<div class="paso">5️⃣ Cociente: [f(x+h) - f(x)] / h = <strong>${cociente_str}</strong></div>`;
-        resultado.innerHTML += `<div class="paso">6️⃣ Derivada (límite cuando h→0): f'(x) = <strong>${derivada.toString()}</strong> ✅</div>`;
+        resultado.innerHTML += `<div class="paso">6️⃣ Derivada (límite cuando h→0): f'(x) = <strong>${derivada_str}</strong> ✅</div>`;
 
         // Datos para graficar
-        const f = math.compile(entrada);
-        const df = derivada.compile();
-
         const x_vals = math.range(-10, 10, 0.2).toArray();
         const y_vals_f = x_vals.map(x => {
-          try { return f.evaluate({ x }); } catch { return null; }
+          try { return fx.evaluate({ x }); } catch { return null; }
         });
         const y_vals_df = x_vals.map(x => {
           try { return df.evaluate({ x }); } catch { return null; }
         });
 
         // Graficar usando Chart.js
-        if (window.grafica) window.grafica.destroy(); // Si ya existe, eliminar
+        if (window.grafica) window.grafica.destroy();
         const ctx = canvas.getContext("2d");
         window.grafica = new Chart(ctx, {
           type: "line",
@@ -147,6 +153,7 @@
 
       } catch (e) {
         resultado.innerHTML = `<div class="paso error">❌ Error al interpretar la función. Asegúrate de usar solo <strong>x</strong> como variable y una sintaxis válida.</div>`;
+        console.error(e);
       }
     }
   </script>
