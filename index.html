@@ -2,59 +2,103 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Derivadas y Gráficas</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.1/math.min.js"></script>
+  <title>Calculadora de Derivadas</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/nerdamer/1.1.9/nerdamer.core.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/nerdamer/1.1.9/Calculus.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f8f8fc;
-      text-align: center;
-      padding: 40px;
+      background: #f4f4f4;
+      padding: 20px;
     }
-    input, button {
-      font-size: 18px;
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    input[type="text"] {
+      width: 100%;
       padding: 10px;
-      margin: 10px;
-    }
-    input {
-      width: 300px;
+      font-size: 1.2em;
+      margin-bottom: 10px;
     }
     button {
-      background-color: #8e44ad;
+      padding: 10px 20px;
+      font-size: 1em;
+      background: purple;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
       cursor: pointer;
     }
+    h2 {
+      color: purple;
+    }
     canvas {
-      margin-top: 40px;
+      margin-top: 20px;
+    }
+    pre {
+      background: #eee;
+      padding: 10px;
+      border-radius: 8px;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h2>Calculadora de Derivadas Profesional</h2>
+    <input type="text" id="funcion" placeholder="Escribe la función, por ejemplo: 2x^2">
+    <button onclick="resolverDerivada()">Resolver</button>
+    
+    <h3>Resultado:</h3>
+    <p><strong>Derivada:</strong> <span id="resultado"></span></p>
+    
+    <h3>Paso a paso:</h3>
+    <pre id="pasos"></pre>
 
-  <h1>Calculadora de Derivadas</h1>
-  <input type="text" id="funcion" placeholder="Ej: x^2 + 3x">
-  <button onclick="resolver()">Calcular y Graficar</button>
-  <canvas id="grafica" width="800" height="400"></canvas>
+    <h3>Gráfico:</h3>
+    <canvas id="grafico" width="700" height="400"></canvas>
+  </div>
 
   <script>
-    function resolver() {
-      const entrada = document.getElementById("funcion").value.trim();
-      const canvas = document.getElementById("grafica");
-      const ctx = canvas.getContext("2d");
+    function resolverDerivada() {
+      const entrada = document.getElementById('funcion').value.replace(/\^/g, '**');
+      const entradaNormalizada = entrada.replace(/\*\*/g, '^'); // para nerdamer
 
       try {
-        const f = math.compile(entrada);
-        const derivada = math.derivative(entrada, 'x').compile();
+        // Calcular derivada
+        const derivada = nerdamer(`diff(${entradaNormalizada}, x)`).toString();
+        document.getElementById('resultado').innerText = derivada;
 
-        const x_vals = math.range(-10, 10, 0.2).toArray();
-        const y_vals_f = x_vals.map(x => f.evaluate({x}));
-        const y_vals_df = x_vals.map(x => derivada.evaluate({x}));
+        // Mostrar paso a paso (forma simple)
+        let pasos = `1. Función original: f(x) = ${entradaNormalizada}\n`;
+        pasos += `2. Aplicamos regla de derivación\n`;
+        pasos += `3. Resultado: f'(x) = ${derivada}`;
+        document.getElementById('pasos').innerText = pasos;
 
-        if (window.grafica) window.grafica.destroy();
-        window.grafica = new Chart(ctx, {
+        // Graficar función original y derivada
+        const f = math.evaluate(`f(x) = ${entrada}`);
+        const f_deriv = math.evaluate(`f_deriv(x) = ${math.simplify(derivada).toString()}`);
+
+        const x_vals = [];
+        const y_vals_f = [];
+        const y_vals_f_deriv = [];
+
+        for (let x = -10; x <= 10; x += 0.5) {
+          x_vals.push(x);
+          y_vals_f.push(f(x));
+          y_vals_f_deriv.push(f_deriv(x));
+        }
+
+        const ctx = document.getElementById('grafico').getContext('2d');
+        if (window.myChart) window.myChart.destroy(); // Evita superposición de gráficas
+
+        window.myChart = new Chart(ctx, {
           type: 'line',
           data: {
             labels: x_vals,
@@ -62,15 +106,13 @@
               {
                 label: 'f(x)',
                 data: y_vals_f,
-                borderColor: '#8e44ad',
-                borderWidth: 2,
+                borderColor: 'blue',
                 fill: false
               },
               {
                 label: "f'(x)",
-                data: y_vals_df,
-                borderColor: '#bb8fce',
-                borderWidth: 2,
+                data: y_vals_f_deriv,
+                borderColor: 'purple',
                 fill: false
               }
             ]
@@ -79,10 +121,11 @@
             responsive: true,
             plugins: {
               legend: {
-                labels: {
-                  color: '#333',
-                  font: { size: 14 }
-                }
+                position: 'top',
+              },
+              title: {
+                display: true,
+                text: 'Función Original y su Derivada'
               }
             },
             scales: {
@@ -102,9 +145,9 @@
           }
         });
 
-      } catch (e) {
-        alert("⚠ Error: Revisa la función ingresada. Usa solo 'x' como variable.");
-        console.error(e);
+      } catch (error) {
+        document.getElementById('resultado').innerText = 'Error al calcular. Revisa la función.';
+        document.getElementById('pasos').innerText = '';
       }
     }
   </script>
