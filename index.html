@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Derivadas paso a paso - Forma larga</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.1/math.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -31,7 +32,7 @@
       width: 70%;
     }
     button {
-      background-color: #3498db;
+      background-color: #8e44ad;
       color: white;
       border: none;
       border-radius: 6px;
@@ -40,12 +41,15 @@
     .paso {
       background-color: #f0f4f8;
       padding: 15px;
-      border-left: 5px solid #2980b9;
+      border-left: 5px solid #6c3483;
       margin-top: 15px;
       border-radius: 6px;
     }
     .error {
       color: red;
+    }
+    canvas {
+      margin-top: 30px;
     }
   </style>
 </head>
@@ -56,25 +60,24 @@
     <input type="text" id="funcion" placeholder="Ejemplo: x^2 + 3x">
     <button onclick="calcularDerivada()">Resolver</button>
     <div id="resultado"></div>
+    <canvas id="grafica" width="700" height="300"></canvas>
   </div>
 
   <script>
     function calcularDerivada() {
       const entrada = document.getElementById("funcion").value.trim();
       const resultado = document.getElementById("resultado");
+      const canvas = document.getElementById("grafica");
       resultado.innerHTML = "";
-
       if (!entrada) {
         resultado.innerHTML = '<div class="paso error">⚠ Ingresa una función válida.</div>';
         return;
       }
 
       try {
-        // Paso 1: f(x)
         const fx = math.parse(entrada);
         const fx_str = fx.toString();
 
-        // Paso 2: f(x + h)
         const fxh = fx.transform(node =>
           node.isSymbolNode && node.name === "x"
             ? math.parse("(x + h)")
@@ -82,26 +85,68 @@
         );
         const fxh_str = fxh.toString();
 
-        // Paso 3: f(x + h) - f(x)
-        const diferencia = math.simplify((${fxh_str}) - (${fx_str}));
+        const diferencia = math.simplify(`(${fxh_str}) - (${fx_str})`);
         const diferencia_str = diferencia.toString();
 
-        // Paso 4: (f(x + h) - f(x)) / h
-        const cociente = math.simplify((${diferencia_str}) / h);
+        const cociente = math.simplify(`(${diferencia_str}) / h`);
         const cociente_str = cociente.toString();
 
-        // Paso 5: Límite cuando h → 0
         const derivada = math.derivative(entrada, 'x');
 
-        // Mostrar pasos
-        resultado.innerHTML += <div class="paso">1️⃣ Fórmula general:<br>f'(x) = lim₍ₕ→0₎ [f(x+h) - f(x)] / h</div>;
-        resultado.innerHTML += <div class="paso">2️⃣ f(x) = <strong>${fx_str}</strong></div>;
-        resultado.innerHTML += <div class="paso">3️⃣ f(x+h) = <strong>${fxh_str}</strong></div>;
-        resultado.innerHTML += <div class="paso">4️⃣ Diferencia: f(x+h) - f(x) = <strong>${diferencia_str}</strong></div>;
-        resultado.innerHTML += <div class="paso">5️⃣ Cociente: [f(x+h) - f(x)] / h = <strong>${cociente_str}</strong></div>;
-        resultado.innerHTML += <div class="paso">6️⃣ Derivada (límite cuando h→0): f'(x) = <strong>${derivada.toString()}</strong> ✅</div>;
+        resultado.innerHTML += `<div class="paso">1️⃣ Fórmula general:<br>f'(x) = lim₍ₕ→0₎ [f(x+h) - f(x)] / h</div>`;
+        resultado.innerHTML += `<div class="paso">2️⃣ f(x) = <strong>${fx_str}</strong></div>`;
+        resultado.innerHTML += `<div class="paso">3️⃣ f(x+h) = <strong>${fxh_str}</strong></div>`;
+        resultado.innerHTML += `<div class="paso">4️⃣ Diferencia: f(x+h) - f(x) = <strong>${diferencia_str}</strong></div>`;
+        resultado.innerHTML += `<div class="paso">5️⃣ Cociente: [f(x+h) - f(x)] / h = <strong>${cociente_str}</strong></div>`;
+        resultado.innerHTML += `<div class="paso">6️⃣ Derivada (límite cuando h→0): f'(x) = <strong>${derivada.toString()}</strong> ✅</div>`;
+
+        // Datos para graficar
+        const f = math.compile(entrada);
+        const df = derivada.compile();
+
+        const x_vals = math.range(-10, 10, 0.2).toArray();
+        const y_vals_f = x_vals.map(x => {
+          try { return f.evaluate({ x }); } catch { return null; }
+        });
+        const y_vals_df = x_vals.map(x => {
+          try { return df.evaluate({ x }); } catch { return null; }
+        });
+
+        // Graficar usando Chart.js
+        if (window.grafica) window.grafica.destroy(); // Si ya existe, eliminar
+        const ctx = canvas.getContext("2d");
+        window.grafica = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: x_vals,
+            datasets: [
+              {
+                label: "f(x)",
+                data: y_vals_f,
+                borderColor: "#8e44ad",
+                borderWidth: 2,
+                fill: false
+              },
+              {
+                label: "f'(x)",
+                data: y_vals_df,
+                borderColor: "#af7ac5",
+                borderWidth: 2,
+                fill: false
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              x: { title: { display: true, text: 'x' } },
+              y: { title: { display: true, text: 'y' } }
+            }
+          }
+        });
+
       } catch (e) {
-        resultado.innerHTML = <div class="paso error">❌ Error al interpretar la función. Asegúrate de usar solo <strong>x</strong> como variable y una sintaxis válida.</div>;
+        resultado.innerHTML = `<div class="paso error">❌ Error al interpretar la función. Asegúrate de usar solo <strong>x</strong> como variable y una sintaxis válida.</div>`;
       }
     }
   </script>
