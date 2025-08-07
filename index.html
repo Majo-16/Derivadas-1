@@ -1,152 +1,109 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calculadora de Derivadas paso a paso</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
-
-  body {
-    font-family: 'Roboto', sans-serif;
-    background: linear-gradient(135deg, #4ca1af, #2c3e50);
-    color: #333;
-    margin: 0;
-    padding: 0;
-  }
-  header {
-    background: rgba(255,255,255,0.9);
-    color: #2c3e50;
-    text-align: center;
-    padding: 25px 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-  }
-  header h1 {
-    margin: 0;
-    font-size: 28px;
-  }
-  .container {
-    max-width: 800px;
-    margin: 30px auto;
-    padding: 25px;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.2);
-  }
-  .input-section {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 25px;
-  }
-  input[type="text"] {
-    flex: 1;
-    padding: 12px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-  }
-  button {
-    background: #2c3e50;
-    color: #fff;
-    border: none;
-    padding: 12px 18px;
-    font-size: 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-  button:hover {
-    background: #1e2f3a;
-  }
-  .result {
-    background: #ecf0f1;
-    padding: 15px;
-    border-left: 5px solid #2c3e50;
-    border-radius: 6px;
-    font-size: 15px;
-    line-height: 1.7;
-    word-wrap: break-word;
-  }
-  .step-title {
-    font-weight: bold;
-    color: #2c3e50;
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>Derivadas paso a paso - Forma larga</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.1/math.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #eef2f3;
+      padding: 40px;
+    }
+    .contenedor {
+      background-color: #fff;
+      padding: 30px;
+      max-width: 800px;
+      margin: auto;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    input, button {
+      font-size: 18px;
+      padding: 10px;
+      margin: 10px 0;
+    }
+    input {
+      width: 70%;
+    }
+    button {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .paso {
+      background-color: #f0f4f8;
+      padding: 15px;
+      border-left: 5px solid #2980b9;
+      margin-top: 15px;
+      border-radius: 6px;
+    }
+    .error {
+      color: red;
+    }
+  </style>
 </head>
 <body>
-
-<header>
-  <h1>Calculadora de Derivadas paso a paso</h1>
-</header>
-
-<div class="container">
-  <div class="input-section">
-    <input type="text" id="funcion" placeholder="Ej: -2x^2">
-    <button onclick="calcularDerivada()">Derivar</button>
+  <div class="contenedor">
+    <h1>Derivada por la definición</h1>
+    <p>Escribe la función <strong>f(x)</strong> (ej: <code>x^2 + 3x</code>):</p>
+    <input type="text" id="funcion" placeholder="Ejemplo: x^2 + 3x">
+    <button onclick="calcularDerivada()">Resolver</button>
+    <div id="resultado"></div>
   </div>
-  <div id="resultado" class="result"></div>
-</div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
-<script>
-function calcularDerivada() {
-  const expr = document.getElementById('funcion').value.trim();
-  const resultadoDiv = document.getElementById('resultado');
+  <script>
+    function calcularDerivada() {
+      const entrada = document.getElementById("funcion").value.trim();
+      const resultado = document.getElementById("resultado");
+      resultado.innerHTML = "";
 
-  if (!expr) {
-    resultadoDiv.innerHTML = "⚠️ Por favor, ingresa una función.";
-    return;
-  }
+      if (!entrada) {
+        resultado.innerHTML = '<div class="paso error">⚠ Ingresa una función válida.</div>';
+        return;
+      }
 
-  try {
-    // f(x)
-    const fx = expr;
+      try {
+        // Paso 1: f(x)
+        const fx = math.parse(entrada);
+        const fx_str = fx.toString();
 
-    // f(x+h): reemplazar x por (x + h)
-    const fxh = expr.replace(/x/g, '(x + h)');
+        // Paso 2: f(x + h)
+        const fxh = fx.transform(node =>
+          node.isSymbolNode && node.name === "x"
+            ? math.parse("(x + h)")
+            : node
+        );
+        const fxh_str = fxh.toString();
 
-    // f(x+h) - f(x)
-    const restaExpr = `(${fxh}) - (${fx})`;
+        // Paso 3: f(x + h) - f(x)
+        const diferencia = math.simplify((${fxh_str}) - (${fx_str}));
+        const diferencia_str = diferencia.toString();
 
-    // [f(x+h)-f(x)] / h
-    const divisionExpr = `(${restaExpr}) / h`;
+        // Paso 4: (f(x + h) - f(x)) / h
+        const cociente = math.simplify((${diferencia_str}) / h);
+        const cociente_str = cociente.toString();
 
-    // Simplificar paso a paso usando math.js
-    const paso1 = math.simplify(fxh).toString();
-    const paso2 = math.simplify(restaExpr).toString();
-    const paso3 = math.simplify(divisionExpr).toString();
+        // Paso 5: Límite cuando h → 0
+        const derivada = math.derivative(entrada, 'x');
 
-    // Derivada final
-    const derivada = math.derivative(expr, 'x').toString();
-
-    resultadoDiv.innerHTML = `
-      <div class="step-title">Función original:</div>
-      f(x) = ${fx} <br><br>
-
-      <div class="step-title">Paso 1:</div>
-      Sustituimos x por (x + h): <br>
-      f(x + h) = ${fxh} <br>
-      Simplificado: ${paso1} <br><br>
-
-      <div class="step-title">Paso 2:</div>
-      Calculamos f(x + h) - f(x): <br>
-      (${fxh}) - (${fx}) <br>
-      Simplificado: ${paso2} <br><br>
-
-      <div class="step-title">Paso 3:</div>
-      Dividimos entre h: <br>
-      (${paso2}) / h <br>
-      Simplificado: ${paso3} <br><br>
-
-      <div class="step-title">Paso 4:</div>
-      Tomamos el límite cuando h→0 (equivalente a la derivada): <br>
-      <b>f'(x) = ${derivada}</b>
-    `;
-  } catch (error) {
-    resultadoDiv.innerHTML = "⚠️ Error al calcular la derivada. Revisa la expresión ingresada.";
-  }
-}
-</script>
-
+        // Mostrar pasos
+        resultado.innerHTML += <div class="paso">1️⃣ Fórmula general:<br>f'(x) = lim₍ₕ→0₎ [f(x+h) - f(x)] / h</div>;
+        resultado.innerHTML += <div class="paso">2️⃣ f(x) = <strong>${fx_str}</strong></div>;
+        resultado.innerHTML += <div class="paso">3️⃣ f(x+h) = <strong>${fxh_str}</strong></div>;
+        resultado.innerHTML += <div class="paso">4️⃣ Diferencia: f(x+h) - f(x) = <strong>${diferencia_str}</strong></div>;
+        resultado.innerHTML += <div class="paso">5️⃣ Cociente: [f(x+h) - f(x)] / h = <strong>${cociente_str}</strong></div>;
+        resultado.innerHTML += <div class="paso">6️⃣ Derivada (límite cuando h→0): f'(x) = <strong>${derivada.toString()}</strong> ✅</div>;
+      } catch (e) {
+        resultado.innerHTML = <div class="paso error">❌ Error al interpretar la función. Asegúrate de usar solo <strong>x</strong> como variable y una sintaxis válida.</div>;
+      }
+    }
+  </script>
 </body>
 </html>
